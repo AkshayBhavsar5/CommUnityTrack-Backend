@@ -1,8 +1,9 @@
-const user = require("../db/models/user.js");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const ErrorHandler = require("../middlewares/auth.js");
 const catchAsyncError = require("../middlewares/catchAsyncError.js");
 const AppError = require("../middlewares/appError.js");
+const user = require("../db/models/user.js");
 
 const genrateToken = (payload) => {
   return jwt.sign(payload, process.env.JWT_SECRETKEY, {
@@ -23,6 +24,7 @@ const regiseter = catchAsyncError(async (req, res, next) => {
 
   const newuser = await user.create({
     usertype: body.usertype,
+    userName: body.userName,
     firstName: body.firstName,
     lastName: body.lastName,
     phone: body.phone,
@@ -90,19 +92,30 @@ const logOut = catchAsyncError(async (req, res, next) => {
 
 //Get User
 const getUser = catchAsyncError(async (req, res, next) => {
-  const user = await user.findById(req.user.id);
-  res.status(200).json({
-    success: true,
-    user,
-  });
+  // const user = await user.findById(req.user.id);
+  // res.status(200).json({
+  //   success: true,
+  //   user,
+  // });
+  const getuser = await user.findAll();
+  try {
+    return res.status(201).json({
+      status: "success",
+      message: "get all user",
+      getuser,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-const updatePassword = catchAsyncError(async (req, res, next) => {
-  const { currentPassword, newPassword, confirmNewPassword } = req.body;
-  if (!currentPassword || !newPassword || !confirmNewPassword) {
+const updatePassword = catchAsyncError(async (req, res) => {
+  const { userName, currentPassword, newPassword, confirmNewPassword } =
+    req.body;
+  if (!userName || !currentPassword || !newPassword || !confirmNewPassword) {
     return next(new AppError("Please Fill all the Fill", 400));
   }
-  const user = await user.findById(req.user.id).select("password");
+  const user = await user.findByPk(id).select("password");
   const isPasswordMatched = await user.comparePassword(currentPassword);
   if (!isPasswordMatched) {
     return next(new AppError("Incorrent Current Password ", 400));

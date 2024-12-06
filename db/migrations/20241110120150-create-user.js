@@ -12,7 +12,11 @@ module.exports = {
         type: DataTypes.INTEGER,
       },
       usertype: {
-        type: DataTypes.ENUM("0", "1"),
+        type: DataTypes.ENUM("0 ", " 1 ", "2 ",),
+        allowNull: false,
+      },
+      userName: {
+        type: DataTypes.STRING,
       },
       firstName: {
         type: DataTypes.STRING,
